@@ -1,0 +1,151 @@
+@model List<JobApplicationWeb.Models.JobApplication>
+
+@{
+    ViewData["Title"] = "My Applications";
+}
+
+<style>
+    .applications-header {
+        margin-bottom: 2.5rem;
+    }
+
+    .applications-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #000;
+        margin-bottom: 0.5rem;
+    }
+
+    .applications-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .applications-table thead {
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .applications-table th {
+        padding: 1.25rem;
+        text-align: left;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .applications-table td {
+        padding: 1.25rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .applications-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        color: #6c757d;
+    }
+
+    .empty-state h3 {
+        color: #495057;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state a {
+        display: inline-block;
+        margin-top: 1rem;
+        padding: 0.65rem 1.5rem;
+        background-color: #000;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .empty-state a:hover {
+        background-color: #212529;
+        text-decoration: none;
+    }
+</style>
+
+<div class="applications-header">
+    <h1>My Applications</h1>
+</div>
+
+@if (Model.Any())
+{
+    <table class="applications-table">
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Applied Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var application in Model.OrderByDescending(a => a.AppliedAt))
+            {
+                string statusClass = application.Status switch
+                {
+                    "Approved" => "status-approved",
+                    "Rejected" => "status-rejected",
+                    _ => "status-pending"
+                };
+
+                <tr>
+                    <td>
+                        <strong>@application.Job.Title</strong>
+                    </td>
+                    <td>
+                        @application.AppliedAt.ToString("MMM dd, yyyy")
+                    </td>
+                    <td>
+                        <span class="status-badge @statusClass">
+                            @application.Status
+                        </span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="empty-state">
+        <h3>No Applications Yet</h3>
+        <p>You haven't applied for any jobs yet. Start exploring opportunities now!</p>
+        <a asp-controller="Jobs" asp-action="Index">Browse Jobs</a>
+    </div>
+}

@@ -1,0 +1,293 @@
+﻿@model IEnumerable<JobApplicationWeb.Models.Job>
+
+@{
+    ViewData["Title"] = "Available Jobs";
+    var appliedJobIds = (List<int>?)ViewData["AppliedJobIds"] ?? new List<int>();
+    int userId = Context.Session.GetInt32("UserId") ?? 0;
+}
+
+<style>
+    .jobs-header {
+        margin-bottom: 3rem;
+    }
+
+    .jobs-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #000;
+        margin-bottom: 0.5rem;
+    }
+
+    .jobs-header p {
+        font-size: 1.1rem;
+        color: #6c757d;
+    }
+
+    .job-card {
+        transition: all 0.3s ease;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+        height: 100%;
+        background: white;
+    }
+
+    .job-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        border-color: #000;
+    }
+
+    .job-card-body {
+        padding: 1.75rem;
+    }
+
+    .job-card h5 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #000;
+        margin-bottom: 0.75rem;
+    }
+
+    .job-description {
+        color: #495057;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .job-card-footer {
+        padding: 0 1.75rem 1.75rem 1.75rem;
+        background: transparent;
+        border-top: 1px solid #f0f0f0;
+        padding-top: 1rem;
+    }
+
+    .job-date {
+        display: block;
+        font-size: 0.85rem;
+        color: #adb5bd;
+        margin-bottom: 1rem;
+    }
+
+    .btn-apply {
+        width: 100%;
+        padding: 0.65rem;
+        background-color: #000;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-apply:hover:not(:disabled) {
+        background-color: #212529;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-apply:disabled {
+        background-color: #6c757d;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .login-overlay {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 249, 250, 0.95));
+        border-radius: 6px;
+        padding: 1.5rem;
+        text-align: center;
+        min-height: 150px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .login-overlay p {
+        color: #495057;
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+
+    .login-overlay-text {
+        color: #6c757d;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        margin-bottom: 1.25rem;
+    }
+
+    .login-overlay-links {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-overlay-link {
+        padding: 0.5rem 1rem;
+        background-color: #000;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-overlay-link:hover {
+        background-color: #212529;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .login-overlay-separator {
+        color: #adb5bd;
+        margin: 0 0.5rem;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+        border: none;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        color: #6c757d;
+    }
+
+    .empty-state h3 {
+        color: #495057;
+        margin-bottom: 1rem;
+    }
+
+    @@media (max-width: 768px) {
+        .jobs-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .login-overlay-links {
+            flex-direction: column;
+        }
+
+        .btn-overlay-link {
+            width: 100%;
+            text-align: center;
+        }
+
+        .login-overlay-separator {
+            display: none;
+        }
+    }
+</style>
+
+<div class="jobs-header">
+    <h1>Available Jobs</h1>
+    <p>Find your next opportunity</p>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <strong>✓ Success!</strong> @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-warning">
+        <strong>ℹ Info:</strong> @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (Model.Any())
+{
+    <div class="row">
+        @foreach (var job in Model)
+        {
+            bool hasApplied = appliedJobIds.Contains(job.Id);
+
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="job-card shadow-sm">
+                    <div class="job-card-body">
+                        <h5>@job.Title</h5>
+                        <p class="job-description">@job.Description</p>
+                    </div>
+                    <div class="job-card-footer">
+                        <small class="job-date">
+                            📅 Posted on @job.CreatedAt.ToShortDateString()
+                        </small>
+
+                        @if (userId == 0)
+                        {
+                            <div class="login-overlay">
+                                <p style="margin-bottom: 0.75rem; font-weight: 500;">Sign in to apply</p>
+                                <div class="login-overlay-text">
+                                    Please create an account or sign in to apply for this job
+                                </div>
+                                <div class="login-overlay-links">
+                                    <a asp-controller="Account" asp-action="Login" class="btn-overlay-link">
+                                        Sign In
+                                    </a>
+                                    <span class="login-overlay-separator">or</span>
+                                    <a asp-controller="Account" asp-action="Register" class="btn-overlay-link">
+                                        Register
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                        else if (hasApplied)
+                        {
+                            <button class="btn-apply" disabled title="You have already applied for this job">
+                                ✓ Already Applied
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-controller="Applications"
+                               asp-action="Apply"
+                               asp-route-jobId="@job.Id"
+                               class="btn-apply"
+                               style="text-decoration: none;">
+                                Apply Now
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="empty-state">
+        <h3>📂 No Jobs Available</h3>
+        <p>There are currently no job openings. Please check back later.</p>
+    </div>
+}
